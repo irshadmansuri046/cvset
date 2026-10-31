@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EditorToolbar } from './EditorToolbar';
 import { PersonalDetailsForm } from './PersonalDetailsForm';
 import { SummaryForm } from './SummaryForm';
@@ -13,11 +13,21 @@ import { Eye, Edit3, Check } from 'lucide-react';
 import { DEFAULT_RESUME } from '../../constants/sampleData';
 import { exportResumeToPdf } from '../../utils/pdfExport';
 
-export function ResumeEditor({ initialResume = DEFAULT_RESUME, onBackToDashboard }) {
+export function ResumeEditor({ 
+  initialResume = DEFAULT_RESUME, 
+  onBackToDashboard,
+  onOpenJobTailor 
+}) {
   const [resume, setResume] = useState(initialResume || DEFAULT_RESUME);
   const [activeTab, setActiveTab] = useState('editor'); // for mobile: 'editor' or 'preview'
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [lastSaved, setLastSaved] = useState(false);
+
+  useEffect(() => {
+    if (initialResume) {
+      setResume(initialResume);
+    }
+  }, [initialResume?.id, initialResume?.updatedAt]);
 
   // Auto-save on change
   const handleChange = (updatedResume) => {
@@ -45,6 +55,7 @@ export function ResumeEditor({ initialResume = DEFAULT_RESUME, onBackToDashboard
           onChange={handleChange}
           onBackToDashboard={onBackToDashboard}
           onOpenScoreModal={() => setShowScoreModal(true)}
+          onOpenJobTailor={() => onOpenJobTailor && onOpenJobTailor(resume)}
           onDownloadPdf={handleDownloadPdf}
         />
       </div>

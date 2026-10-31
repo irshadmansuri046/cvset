@@ -4,6 +4,7 @@ import {
   ArrowUp, ArrowDown, Sparkles 
 } from 'lucide-react';
 import { SuggestionsModal } from './SuggestionsModal';
+import { BulletTextarea } from './BulletTextarea';
 
 export function ExperienceForm({ experiences = [], onChange }) {
   const [expandedId, setExpandedId] = useState(experiences[0]?.id || null);
@@ -219,25 +220,24 @@ export function ExperienceForm({ experiences = [], onChange }) {
 
                   {/* Bullet description */}
                   <div className="sm:col-span-2 pt-2">
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="font-medium text-slate-700">
-                        Description & Key Achievements
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setActiveSuggestionJobId(job.id)}
-                        className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition"
-                      >
-                        <Sparkles className="w-3 h-3 text-amber-500" />
-                        <span>+ Add Suggested Bullet</span>
-                      </button>
-                    </div>
-                    <textarea
-                      rows={4}
+                    <BulletTextarea
+                      id={`job-desc-${job.id}`}
+                      label="Description & Key Achievements"
                       value={job.description || ''}
-                      onChange={(e) => handleUpdateJob(job.id, 'description', e.target.value)}
+                      onChange={(val) => handleUpdateJob(job.id, 'description', val)}
                       placeholder="• Accelerated checkout conversion by 24% through redesigned one-click UI flow...&#10;• Reduced server response latency by 35% using caching..."
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-hidden leading-relaxed text-slate-800"
+                      rows={5}
+                      actionButton={
+                        <button
+                          type="button"
+                          onClick={() => setActiveSuggestionJobId(job.id)}
+                          className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition"
+                        >
+                          <Sparkles className="w-3 h-3 text-amber-500" />
+                          <span>+ Add Suggested Bullet</span>
+                        </button>
+                      }
+                      tip="Tip: Press Enter on a bullet line to automatically insert the next bullet point."
                     />
                   </div>
                 </div>

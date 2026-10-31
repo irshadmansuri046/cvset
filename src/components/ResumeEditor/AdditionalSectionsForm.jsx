@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Layers, Plus, Trash2, Globe, Award, FolderGit2 } from 'lucide-react';
+import { BulletTextarea } from './BulletTextarea';
 
 export function AdditionalSectionsForm({ resume, onChange }) {
   const { projects = [], languages = [], certifications = [] } = resume;
@@ -141,13 +142,14 @@ export function AdditionalSectionsForm({ resume, onChange }) {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block font-medium text-slate-700 mb-1">Description</label>
-                  <textarea
-                    rows={2}
-                    placeholder="Brief overview of features, user metrics, and what problem it solved..."
+                  <BulletTextarea
+                    id={`proj-desc-${proj.id}`}
+                    label="Description & Highlights"
                     value={proj.description || ''}
-                    onChange={(e) => handleUpdateProject(proj.id, 'description', e.target.value)}
-                    className="w-full p-2.5 bg-white border border-slate-200 rounded-lg outline-hidden text-slate-800"
+                    onChange={(val) => handleUpdateProject(proj.id, 'description', val)}
+                    placeholder="Brief overview of features, user metrics, and what problem it solved...&#10;• Built high-concurrency real-time WebSocket dashboard"
+                    rows={3}
+                    tip="Tip: Use • Bullet List for project features and metric results."
                   />
                 </div>
               </div>

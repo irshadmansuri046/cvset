@@ -14,6 +14,7 @@ describe('ResumeRenderer Component (cvset)', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    document.body.innerHTML = '';
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -133,5 +134,39 @@ describe('ResumeRenderer Component (cvset)', () => {
       interactive: false
     });
     expect(container.textContent).toContain('Summary');
+
+    // Graphite template contains PROFESSIONAL SUMMARY and PROFESSIONAL EXPERIENCE
+    await renderComponent({
+      resume: { ...DEFAULT_RESUME, template: 'graphite' },
+      interactive: false
+    });
+    expect(container.textContent).toContain('PROFESSIONAL SUMMARY');
+    expect(container.textContent).toContain('PROFESSIONAL EXPERIENCE');
+  });
+
+  it('renders page break padding controls and updates data-page-break-padding on click', async () => {
+    await renderComponent({ resume: DEFAULT_RESUME, interactive: true });
+
+    // Page Break Padding controls should be visible
+    expect(container.textContent).toContain('Page Pad:');
+    const compactBtn = container.querySelector('button[title*="Compact page breaker padding"]');
+    const spaciousBtn = container.querySelector('button[title*="Spacious page breaker padding"]');
+    expect(compactBtn).not.toBeNull();
+    expect(spaciousBtn).not.toBeNull();
+
+    const doc = container.querySelector('#resume-preview-document');
+    expect(doc.getAttribute('data-page-break-padding')).toBe('28'); // default Balanced
+
+    // Click Spacious (40px)
+    await act(async () => {
+      spaciousBtn.click();
+    });
+    expect(doc.getAttribute('data-page-break-padding')).toBe('40');
+
+    // Click Compact (20px)
+    await act(async () => {
+      compactBtn.click();
+    });
+    expect(doc.getAttribute('data-page-break-padding')).toBe('20');
   });
 });

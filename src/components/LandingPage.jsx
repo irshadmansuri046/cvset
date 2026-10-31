@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Zap, 
   Download, FileText, Star, ChevronDown, ChevronUp, Layers, 
-  Award, Clock, Check, Eye 
+  Award, Clock, Check, Eye, Target 
 } from 'lucide-react';
 import { TEMPLATES, COLOR_THEMES } from '../constants/templates';
 import { DEFAULT_RESUME } from '../constants/sampleData';
@@ -11,8 +11,9 @@ import { StockholmTemplate } from './ResumePreview/StockholmTemplate';
 import { SydneyTemplate } from './ResumePreview/SydneyTemplate';
 import { HarvardTemplate } from './ResumePreview/HarvardTemplate';
 import { BerlinTemplate } from './ResumePreview/BerlinTemplate';
+import { GraphiteTemplate } from './ResumePreview/GraphiteTemplate';
 
-export function LandingPage({ onStartResume, onOpenSample, onOpenDashboard }) {
+export function LandingPage({ onStartResume, onOpenSample, onOpenDashboard, onOpenJobTailor }) {
   const [heroTemplate, setHeroTemplate] = useState('dublin');
   const [heroColor, setHeroColor] = useState('#1a91f0');
   const [openFaq, setOpenFaq] = useState(null);
@@ -28,7 +29,8 @@ export function LandingPage({ onStartResume, onOpenSample, onOpenDashboard }) {
     stockholm: StockholmTemplate,
     sydney: SydneyTemplate,
     harvard: HarvardTemplate,
-    berlin: BerlinTemplate
+    berlin: BerlinTemplate,
+    graphite: GraphiteTemplate
   };
 
   const ActiveHeroTemplate = templateMap[heroTemplate] || DublinTemplate;
@@ -89,6 +91,17 @@ export function LandingPage({ onStartResume, onOpenSample, onOpenDashboard }) {
                 <span>Create My Resume Now</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
               </button>
+
+              {onOpenJobTailor && (
+                <button
+                  type="button"
+                  onClick={onOpenJobTailor}
+                  className="w-full sm:w-auto px-6 py-3.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200 shadow-xs hover:border-indigo-300 transition text-sm flex items-center justify-center gap-2"
+                >
+                  <Target className="w-4 h-4 text-indigo-600" />
+                  <span>Match Job Description (JD)</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -384,6 +397,16 @@ export function LandingPage({ onStartResume, onOpenSample, onOpenDashboard }) {
               <h4 className="text-base font-bold text-slate-900">Live Real-Time Preview</h4>
               <p className="text-xs text-slate-600 leading-relaxed">
                 See your resume transform synchronously as you type in the editor with responsive zoom controls and mobile split views.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <Target className="w-5 h-5" />
+              </div>
+              <h4 className="text-base font-bold text-slate-900">Job Description (JD) Matcher</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Paste any job posting from LinkedIn, Indeed, or career sites. Our algorithm aligns your headline, skills, summary, and action bullets for maximum ATS match.
               </p>
             </div>
 

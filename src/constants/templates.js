@@ -38,6 +38,14 @@ export const TEMPLATES = [
     description: "Streamlined compact tech layout optimized for developers, data engineers, and technical leaders.",
     previewColor: "#dc2626",
     tags: ["Tech-Focused", "Compact", "High Density"]
+  },
+  {
+    id: "graphite",
+    name: "Graphite",
+    badge: "Executive",
+    description: "A charcoal name band over the main column beside a full-height warm-grey sidebar, with wide-tracked uppercase section titles over hairlines.",
+    previewColor: "#23272e",
+    tags: ["Charcoal Band", "Warm Grey Sidebar", "Modern"]
   }
 ];
 

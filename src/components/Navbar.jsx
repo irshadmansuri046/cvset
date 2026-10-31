@@ -1,7 +1,7 @@
 import React from 'react';
-import { FileText, Sparkles, Layout, CheckCircle, ShieldCheck } from 'lucide-react';
+import { FileText, Sparkles, Layout, CheckCircle, ShieldCheck, Target } from 'lucide-react';
 
-export function Navbar({ onOpenDashboard, onStartNew, onGoHome }) {
+export function Navbar({ onOpenDashboard, onStartNew, onGoHome, onOpenJobTailor }) {
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
@@ -49,6 +49,17 @@ export function Navbar({ onOpenDashboard, onStartNew, onGoHome }) {
 
         {/* Action CTAs */}
         <div className="flex items-center gap-2.5">
+          {onOpenJobTailor && (
+            <button
+              type="button"
+              onClick={onOpenJobTailor}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-lg transition"
+              title="Tailor your CV to match any job description from LinkedIn/Indeed"
+            >
+              <Target className="w-3.5 h-3.5 text-blue-600" />
+              <span>Match Job (JD)</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onOpenDashboard}

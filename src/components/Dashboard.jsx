@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Plus, FileText, Download, Copy, Trash2, Edit3, 
   Sparkles, Upload, Calendar, ArrowRight, CheckCircle2,
-  Layers, Search, SlidersHorizontal
+  Layers, Search, SlidersHorizontal, Target
 } from 'lucide-react';
 import { 
   getStoredResumes, createNewResume, duplicateResume, 
@@ -16,7 +16,7 @@ import { SydneyTemplate } from './ResumePreview/SydneyTemplate';
 import { HarvardTemplate } from './ResumePreview/HarvardTemplate';
 import { BerlinTemplate } from './ResumePreview/BerlinTemplate';
 
-export function Dashboard({ onSelectResume, onGoHome }) {
+export function Dashboard({ onSelectResume, onGoHome, onOpenJobTailor, onOpenCreateModal }) {
   const [resumes, setResumes] = useState(getStoredResumes());
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewModal, setShowNewModal] = useState(false);
@@ -25,6 +25,16 @@ export function Dashboard({ onSelectResume, onGoHome }) {
 
   const refreshList = () => {
     setResumes(getStoredResumes());
+  };
+
+  const handleTriggerCreate = (mode = 'choice') => {
+    if (onOpenCreateModal) {
+      onOpenCreateModal(mode);
+    } else if (mode === 'ai' && onOpenJobTailor) {
+      onOpenJobTailor();
+    } else {
+      setShowNewModal(true);
+    }
   };
 
   const handleCreate = () => {
@@ -93,7 +103,18 @@ export function Dashboard({ onSelectResume, onGoHome }) {
             <span className="text-sm font-semibold text-slate-600">My Resumes</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Match JD & Tailor CV */}
+            <button
+              type="button"
+              onClick={() => handleTriggerCreate('ai')}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-lg transition"
+              title="Paste a job description to tailor an existing or imported CV"
+            >
+              <Target className="w-3.5 h-3.5 text-blue-600" />
+              <span>Match JD & Tailor CV</span>
+            </button>
+
             {/* Import JSON */}
             <label className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer transition">
               <Upload className="w-3.5 h-3.5" />
@@ -109,7 +130,7 @@ export function Dashboard({ onSelectResume, onGoHome }) {
             {/* Create Resume Button */}
             <button
               type="button"
-              onClick={() => setShowNewModal(true)}
+              onClick={() => handleTriggerCreate('choice')}
               className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow transition"
             >
               <Plus className="w-4 h-4" />
@@ -126,21 +147,31 @@ export function Dashboard({ onSelectResume, onGoHome }) {
           <div>
             <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-wider mb-1">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>100% Free Multiple Resumes</span>
+              <span>100% Free Multiple Resumes & ATS Matching</span>
             </div>
             <h1 className="text-2xl font-black tracking-tight">Manage Your Resumes</h1>
             <p className="text-xs text-slate-300 mt-1 max-w-xl">
-              Create and tailor custom resumes for each job application. Switch templates in 1-click, check ATS scores, and export unlimited high-resolution PDFs.
+              Create and tailor custom resumes for each job application. Switch templates in 1-click, match job descriptions from LinkedIn/Indeed, and export unlimited high-resolution PDFs.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowNewModal(true)}
-            className="px-4 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold rounded-xl shadow-md transition shrink-0"
-          >
-            + Add Another Resume
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => handleTriggerCreate('ai')}
+              className="px-4 py-2.5 bg-blue-600/60 hover:bg-blue-600 border border-blue-400/40 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5"
+            >
+              <Target className="w-3.5 h-3.5 text-blue-300" />
+              <span>Match Job (JD)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTriggerCreate('choice')}
+              className="px-4 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold rounded-xl shadow-md transition"
+            >
+              + Add Another Resume
+            </button>
+          </div>
         </div>
 
         {/* Search & Counter */}
@@ -163,19 +194,38 @@ export function Dashboard({ onSelectResume, onGoHome }) {
 
         {/* Resumes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* New Resume Card */}
+          {/* New Resume Card (Option 1: Blank) */}
           <div
-            onClick={() => setShowNewModal(true)}
+            onClick={() => handleTriggerCreate('choice')}
             className="border-2 border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/20 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer min-h-[300px] transition group"
           >
             <div className="w-14 h-14 rounded-2xl bg-blue-50 group-hover:bg-blue-600 group-hover:text-white text-blue-600 flex items-center justify-center transition shadow-2xs mb-3">
               <Plus className="w-7 h-7" />
             </div>
             <h3 className="text-base font-bold text-slate-800 group-hover:text-blue-600 transition">
-              New Resume
+              Create New Resume
             </h3>
             <p className="text-xs text-slate-400 max-w-xs mt-1">
-              Start fresh or choose from modern ATS-approved design templates.
+              Start with a blank template or use our AI Job Description Tailor.
+            </p>
+          </div>
+
+          {/* Tailor for Job Description Card (Option 2: AI) */}
+          <div
+            onClick={() => handleTriggerCreate('ai')}
+            className="border-2 border-dashed border-indigo-300 hover:border-indigo-500 hover:bg-indigo-50/25 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer min-h-[300px] transition group relative overflow-hidden"
+          >
+            <div className="absolute top-3 right-3 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full uppercase">
+              AI Matcher
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white text-indigo-600 flex items-center justify-center transition shadow-2xs mb-3">
+              <Target className="w-7 h-7" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800 group-hover:text-indigo-600 transition">
+              AI Job Match & Tailor
+            </h3>
+            <p className="text-xs text-slate-400 max-w-xs mt-1">
+              Upload CV + Paste job posting from LinkedIn or Indeed to auto-tailor for the role.
             </p>
           </div>
 

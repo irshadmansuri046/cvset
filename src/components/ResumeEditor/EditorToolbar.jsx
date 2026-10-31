@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, Edit2, Check, Download, Printer, Share2, 
-  Palette, Type, Layout, Sparkles, FileJson 
+  Palette, Type, Layout, Sparkles, FileJson, Target 
 } from 'lucide-react';
 import { TEMPLATES, COLOR_THEMES, FONT_OPTIONS } from '../../constants/templates';
 import { calculateAtsScore } from '../../utils/atsScore';
@@ -13,6 +13,7 @@ export function EditorToolbar({
   onChange,
   onBackToDashboard,
   onOpenScoreModal,
+  onOpenJobTailor,
   onDownloadPdf
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -112,6 +113,19 @@ export function EditorToolbar({
             <Sparkles className="w-3.5 h-3.5" />
             <span>Score: {score}%</span>
           </button>
+
+          {/* Match Job Description (JD) Button */}
+          {onOpenJobTailor && (
+            <button
+              type="button"
+              onClick={onOpenJobTailor}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition shadow-2xs"
+              title="Tailor this CV to match any job description from LinkedIn or Indeed"
+            >
+              <Target className="w-3.5 h-3.5 text-blue-600" />
+              <span className="hidden md:inline">Match Job (JD)</span>
+            </button>
+          )}
         </div>
 
         {/* Center / Right Side: Controls & Export */}

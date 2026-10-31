@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GraduationCap, Plus, Trash2, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from 'lucide-react';
+import { BulletTextarea } from './BulletTextarea';
 
 export function EducationForm({ education = [], onChange }) {
   const [expandedId, setExpandedId] = useState(education[0]?.id || null);
@@ -167,13 +168,14 @@ export function EducationForm({ education = [], onChange }) {
                   </div>
 
                   <div className="sm:col-span-2 pt-1">
-                    <label className="block font-medium text-slate-700 mb-1">Description / Honors / GPA</label>
-                    <textarea
-                      rows={2}
-                      placeholder="e.g. Graduated Magna Cum Laude, GPA 3.8/4.0. Capstone project on distributed systems."
+                    <BulletTextarea
+                      id={`edu-desc-${edu.id}`}
+                      label="Description / Honors / GPA"
                       value={edu.description || ''}
-                      onChange={(e) => handleUpdate(edu.id, 'description', e.target.value)}
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white outline-hidden text-slate-800"
+                      onChange={(val) => handleUpdate(edu.id, 'description', val)}
+                      placeholder="e.g. • Graduated Magna Cum Laude, GPA 3.8/4.0.&#10;• Capstone project on distributed systems."
+                      rows={3}
+                      tip="Tip: Use • Bullet List for honors, relevant courses, or achievements."
                     />
                   </div>
                 </div>
