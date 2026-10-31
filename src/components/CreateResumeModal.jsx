@@ -42,6 +42,7 @@ export function CreateResumeModal({
   const [tailorResult, setTailorResult] = useState(null);
   const [activeDiffTab, setActiveDiffTab] = useState('summary');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isExtractingPdf, setIsExtractingPdf] = useState(false);
 
   const storedResumes = getStoredResumes();
 
@@ -94,21 +95,30 @@ export function CreateResumeModal({
         }
       };
       reader.readAsText(file);
-    } else if (file.name.endsWith('.pdf')) {
-      const extractedText = await extractTextFromPdf(file);
-      if (extractedText) {
-        const parsed = parseResumeText(extractedText);
-        if (parsed) {
-          setUploadedResume(parsed);
-          setCvSource('upload');
+    } else if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+      setIsExtractingPdf(true);
+      try {
+        const extractedText = await extractTextFromPdf(file);
+        if (extractedText) {
+          const parsed = parseResumeText(extractedText);
+          if (parsed) {
+            setUploadedResume(parsed);
+            setCvSource('upload');
+            setPastedCvText(extractedText);
+          } else {
+            setPastedCvText(extractedText);
+            setCvSource('paste');
+          }
         } else {
-          alert('Extracted text from PDF, but could not detect sections. Please paste text directly.');
-          setPastedCvText(extractedText);
+          alert('Could not extract text from this PDF. Please check if the file is encrypted or image-scanned, or paste your resume text directly.');
           setCvSource('paste');
         }
-      } else {
-        alert('Could not automatically parse this PDF. Please copy and paste your resume text directly into the "Paste CV Text" tab.');
+      } catch (err) {
+        console.error('PDF parsing error in CreateResumeModal:', err);
+        alert('An error occurred reading this PDF file. You can paste your resume text directly.');
         setCvSource('paste');
+      } finally {
+        setIsExtractingPdf(false);
       }
     } else {
       // Plain text or markdown
@@ -573,18 +583,28 @@ export function CreateResumeModal({
                         />
                         <label htmlFor="cv-upload-modal-file" className="cursor-pointer space-y-2 block">
                           <div className="w-10 h-10 mx-auto rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                            <Upload className="w-5 h-5" />
+                            {isExtractingPdf ? (
+                              <RefreshCw className="w-5 h-5 animate-spin text-indigo-600" />
+                            ) : (
+                              <Upload className="w-5 h-5" />
+                            )}
                           </div>
                           <p className="text-xs font-bold text-slate-800">
-                            {uploadedFileName ? `File: ${uploadedFileName}` : 'Click to Upload Your Resume'}
+                            {isExtractingPdf ? (
+                              'Extracting & Analyzing PDF Resume...'
+                            ) : uploadedFileName ? (
+                              `File: ${uploadedFileName}`
+                            ) : (
+                              'Click to Upload Your Resume'
+                            )}
                           </p>
                           <p className="text-[11px] text-slate-400">
-                            Supports .pdf, .json, .txt, or .md
+                            {isExtractingPdf ? 'Parsing sections, employment history & skills...' : 'Supports .pdf, .json, .txt, or .md'}
                           </p>
-                          {uploadedResume && (
+                          {uploadedResume && !isExtractingPdf && (
                             <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Parsed: {uploadedResume.personalDetails?.firstName} {uploadedResume.personalDetails?.lastName}</span>
+                              <span>Parsed: {uploadedResume.personalDetails?.firstName} {uploadedResume.personalDetails?.lastName} ({uploadedResume.personalDetails?.jobTitle || 'Resume'})</span>
                             </div>
                           )}
                         </label>

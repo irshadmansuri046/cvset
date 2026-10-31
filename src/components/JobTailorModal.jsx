@@ -7,6 +7,7 @@ import {
 import { 
   parseJobDescription, 
   parseResumeText, 
+  extractTextFromPdf,
   analyzeJobMatch, 
   tailorResumeToJob,
   SAMPLE_JOB_DESCRIPTIONS 
@@ -30,6 +31,8 @@ export function JobTailorModal({
   const [tailorResult, setTailorResult] = useState(null);
   const [activeDiffTab, setActiveDiffTab] = useState('summary'); // 'summary' | 'skills' | 'experience'
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isExtractingPdf, setIsExtractingPdf] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState('');
 
   const storedResumes = getStoredResumes();
 
@@ -60,35 +63,68 @@ export function JobTailorModal({
 
   const candidateResume = getCandidateResume();
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result;
-      if (typeof content !== 'string') return;
+    setUploadedFileName(file.name);
 
-      if (file.name.endsWith('.json')) {
+    if (file.name.endsWith('.json')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
         try {
-          const parsed = JSON.parse(content);
+          const parsed = JSON.parse(event.target?.result);
           setUploadedResume(parsed);
           setResumeSource('upload');
         } catch (err) {
           alert('Could not parse JSON file. Please check format or paste as text.');
         }
-      } else {
-        // Plain text or markdown
-        const parsed = parseResumeText(content);
-        if (parsed) {
-          setUploadedResume(parsed);
-          setResumeSource('upload');
+      };
+      reader.readAsText(file);
+    } else if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+      setIsExtractingPdf(true);
+      try {
+        const extractedText = await extractTextFromPdf(file);
+        if (extractedText) {
+          const parsed = parseResumeText(extractedText);
+          if (parsed) {
+            setUploadedResume(parsed);
+            setResumeSource('upload');
+            setPastedCvText(extractedText);
+          } else {
+            setPastedCvText(extractedText);
+            setResumeSource('paste');
+          }
         } else {
-          alert('Could not extract sections from text file. You can paste the text directly.');
+          alert('Could not extract text from this PDF. Please check if the file is encrypted or image-scanned, or paste your resume text directly.');
+          setResumeSource('paste');
         }
+      } catch (err) {
+        console.error('PDF parsing error in JobTailorModal:', err);
+        alert('An error occurred reading this PDF file. You can paste your resume text directly.');
+        setResumeSource('paste');
+      } finally {
+        setIsExtractingPdf(false);
       }
-    };
-    reader.readAsText(file);
+    } else {
+      // Plain text or markdown
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result;
+        if (typeof content === 'string') {
+          const parsed = parseResumeText(content);
+          if (parsed) {
+            setUploadedResume(parsed);
+            setResumeSource('upload');
+            setPastedCvText(content);
+          } else {
+            setPastedCvText(content);
+            setResumeSource('paste');
+          }
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   const handleApplyPreset = (presetId) => {
@@ -306,25 +342,29 @@ export function JobTailorModal({
                     <div className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-5 text-center bg-slate-50/50 cursor-pointer">
                       <input
                         type="file"
-                        accept=".json,.txt,.md"
+                        accept=".pdf,.json,.txt,.md"
                         onChange={handleFileUpload}
                         className="hidden"
                         id="cv-file-upload-input"
                       />
                       <label htmlFor="cv-file-upload-input" className="cursor-pointer space-y-2 block">
                         <div className="w-10 h-10 mx-auto rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                          <Upload className="w-5 h-5" />
+                          {isExtractingPdf ? (
+                            <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
+                          ) : (
+                            <Upload className="w-5 h-5" />
+                          )}
                         </div>
                         <p className="text-xs font-bold text-slate-700">
-                          Click to upload your CV
+                          {isExtractingPdf ? 'Extracting & Analyzing PDF Resume...' : uploadedFileName ? `File: ${uploadedFileName}` : 'Click to upload your CV'}
                         </p>
                         <p className="text-[11px] text-slate-400">
-                          Supports .json (cvset export), .txt, or .md
+                          {isExtractingPdf ? 'Parsing sections, employment history & skills...' : 'Supports .pdf, .json, .txt, or .md'}
                         </p>
-                        {uploadedResume && (
+                        {uploadedResume && !isExtractingPdf && (
                           <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Loaded: {uploadedResume.personalDetails?.firstName} {uploadedResume.personalDetails?.lastName}</span>
+                            <span>Loaded: {uploadedResume.personalDetails?.firstName} {uploadedResume.personalDetails?.lastName} ({uploadedResume.personalDetails?.jobTitle || 'Resume'})</span>
                           </div>
                         )}
                       </label>
