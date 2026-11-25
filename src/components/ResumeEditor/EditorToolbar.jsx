@@ -155,7 +155,11 @@ export function EditorToolbar({
                       key={tpl.id}
                       type="button"
                       onClick={() => {
-                        onChange({ ...resume, template: tpl.id });
+                        if (tpl.id === 'oslo') {
+                          onChange({ ...resume, template: tpl.id, themeColor: '#1a1a1a', fontFamily: 'Montserrat' });
+                        } else {
+                          onChange({ ...resume, template: tpl.id });
+                        }
                         setShowTemplateMenu(false);
                       }}
                       className={`w-full text-left p-2 rounded-lg text-xs flex items-center justify-between transition ${

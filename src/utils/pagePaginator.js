@@ -234,3 +234,93 @@ export function paginateGraphiteResume(resume = {}, options = {}) {
     };
   });
 }
+
+/**
+ * Paginates Oslo resume data using the Content-Agnostic Dynamic Paginator.
+ * Returns discrete pages matching the boxed-header + #f4f4f4 sidebar layout.
+ */
+export function paginateOsloResume(resume = {}, options = {}) {
+  const result = paginateResume(resume, {
+    template: 'oslo',
+    pagePadding: options.pagePadding || DEFAULT_PAGE_PADDING_PX
+  });
+
+  return result.pages.map((page) => {
+    const jobs = page.main
+      .filter((b) => b.type === 'entry' && b.id && b.id.startsWith('job-') && b.data)
+      .map((b) => b.data);
+
+    const education = page.main
+      .filter((b) => b.type === 'entry' && b.id && b.id.startsWith('edu-') && b.data)
+      .map((b) => b.data);
+
+    const projects = page.main
+      .filter((b) => (b.type === 'card' || b.type === 'chips') && b.data)
+      .map((b) => b.data);
+
+    const certBlock = page.main.find((b) => b.type === 'grid');
+    const certifications = certBlock ? certBlock.items : [];
+
+    const summaryBlock = page.main.find((b) => b.id === 'summary');
+
+    const sidebarSkills = (page.sidebar || [])
+      .filter((b) => b.type === 'skill-item' && b.skill)
+      .map((b) => b.skill);
+
+    const sidebarLangs = (page.sidebar || [])
+      .filter((b) => b.type === 'lang-item' && b.language)
+      .map((b) => b.language);
+
+    const hasDetails = (page.sidebar || []).some((b) => b.type === 'details');
+    const hasLinks = (page.sidebar || []).some((b) => b.type === 'links');
+
+    // Extract custom sections for this page
+    const customSectionsOnPage = [];
+    let currentCustom = null;
+    page.main.forEach((b) => {
+      if (b.type === 'heading' && b.id && b.id.startsWith('h-custom-')) {
+        currentCustom = {
+          id: b.id,
+          title: b.title,
+          items: [],
+          content: ''
+        };
+        customSectionsOnPage.push(currentCustom);
+      } else if (b.type === 'entry' && b.id && b.id.startsWith('custom-item-')) {
+        if (!currentCustom) {
+          currentCustom = { id: `custom-cont-${b.id}`, title: '', items: [], content: '' };
+          customSectionsOnPage.push(currentCustom);
+        }
+        currentCustom.items.push(b.data || { title: b.title, subtitle: b.subtitle, description: b.text });
+      } else if (b.type === 'text' && b.id && b.id.startsWith('custom-text-')) {
+        if (!currentCustom) {
+          currentCustom = { id: `custom-cont-${b.id}`, title: '', items: [], content: '' };
+          customSectionsOnPage.push(currentCustom);
+        }
+        currentCustom.content = b.text;
+      }
+    });
+
+    return {
+      ...page,
+      showHeader: page.main.some((b) => b.type === 'header'),
+      showSummary: Boolean(summaryBlock),
+      summary: summaryBlock ? summaryBlock.text : '',
+      jobsHeading: jobs.length > 0 ? (page.main.some((b) => b.id === 'h-exp') ? 'Employment History' : null) : null,
+      jobs,
+      educationHeading: education.length > 0 ? (page.main.some((b) => b.id === 'h-edu') ? 'Education' : null) : null,
+      education,
+      projectsHeading: projects.length > 0 ? (page.main.some((b) => b.id === 'h-proj') ? 'Projects' : null) : null,
+      projects,
+      certificationsHeading: certifications.length > 0 ? 'Certifications' : null,
+      certifications,
+      customSections: customSectionsOnPage,
+      sidebar: {
+        showDetails: hasDetails,
+        showLinks: hasLinks,
+        skills: sidebarSkills,
+        languages: sidebarLangs
+      }
+    };
+  });
+}

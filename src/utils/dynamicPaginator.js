@@ -98,6 +98,9 @@ export function estimateBlockHeight(block, isFullWidth = false, customCharsPerLi
 
     case 'grid': {
       const items = block.items || [];
+      if (block.compactList) {
+        return Math.max(24, items.length * 26 + 8);
+      }
       const cols = isFullWidth ? 3 : 2;
       const rows = Math.max(1, Math.ceil(items.length / cols));
       return rows * 68 + 10;
@@ -171,8 +174,8 @@ export function paginateGenericBlocks({
 
   while (remSidebar.length > 0 || remMain.length > 0) {
     const hasSidebar = remSidebar.length > 0;
-    const layout = hasSidebar ? 'two-column' : 'full-width';
-    const isFullWidth = !hasSidebar;
+    const layout = (hasSidebar || options.template === 'oslo') ? 'two-column' : 'full-width';
+    const isFullWidth = !hasSidebar && options.template !== 'oslo';
 
     const pageSidebar = [];
     const pageMain = [];
@@ -181,12 +184,12 @@ export function paginateGenericBlocks({
     const decisions = [];
     const warnings = [];
 
-    // Special handling for templates with full-width banner header on Page 1 (e.g. Sydney)
-    if (pageNum === 1 && options.template === 'sydney') {
+    // Special handling for templates with full-width banner/boxed header on Page 1 (e.g. Sydney, Oslo)
+    if (pageNum === 1 && (options.template === 'sydney' || options.template === 'oslo')) {
       const headerIdx = remMain.findIndex((b) => b.type === 'header');
       if (headerIdx !== -1) {
         const headerBlock = remMain.splice(headerIdx, 1)[0];
-        const bannerH = 136;
+        const bannerH = options.template === 'oslo' ? 140 : 136;
         pageMain.push({ ...headerBlock, height: bannerH });
         sideSpace -= bannerH;
         mainSpace -= bannerH;
@@ -233,15 +236,16 @@ export function paginateGenericBlocks({
     }
 
     // --- 2. PACK MAIN COLUMN ---
+    const mainCharsOverride = options.template === 'oslo' ? 84 : null;
     while (remMain.length > 0) {
       const blk = remMain[0];
-      const h = estimateBlockHeight(blk, isFullWidth);
+      const h = estimateBlockHeight(blk, isFullWidth, mainCharsOverride);
 
       // Orphan heading protection for main column:
       // If a heading cannot be accompanied by at least 80px of its following content,
       // move heading to the next page!
       if (blk.keepWithNext && remMain.length > 1) {
-        const nextH = estimateBlockHeight(remMain[1], isFullWidth);
+        const nextH = estimateBlockHeight(remMain[1], isFullWidth, mainCharsOverride);
         const requiredTogether = h + Math.min(nextH, 80);
         if (mainSpace - requiredTogether < 0 && pageMain.length > 0) {
           decisions.push({
@@ -393,7 +397,7 @@ export function convertResumeToBlocks(resume = {}, templateType = 'dublin') {
   const sidebarBlocks = [];
   const mainBlocks = [];
 
-  const isTwoColumn = ['dublin', 'graphite', 'sydney'].includes(templateType);
+  const isTwoColumn = ['dublin', 'graphite', 'sydney', 'oslo'].includes(templateType);
 
   // --- HEADER BLOCK ---
   const headerBlock = {
@@ -489,6 +493,65 @@ export function convertResumeToBlocks(resume = {}, templateType = 'dublin') {
             column: 'sidebar',
             education: edu,
             height: 60
+          });
+        });
+      }
+    } else if (templateType === 'oslo') {
+      // Neutral light-grey sidebar: Details, Links, Skills, Languages
+      sidebarBlocks.push({
+        id: 'details',
+        type: 'details',
+        column: 'sidebar',
+        personalDetails,
+        height: 155
+      });
+
+      if (personalDetails.website || personalDetails.linkedin || personalDetails.github) {
+        sidebarBlocks.push({
+          id: 'links',
+          type: 'links',
+          column: 'sidebar',
+          personalDetails,
+          height: 85
+        });
+      }
+
+      if (skills.length > 0) {
+        sidebarBlocks.push({
+          id: 'h-skills',
+          type: 'heading',
+          title: 'Skills',
+          column: 'sidebar',
+          keepWithNext: true
+        });
+        skills.forEach((s) => {
+          const textLen = (s.name || '').length;
+          const linesCount = Math.max(1, Math.ceil(textLen / 24));
+          sidebarBlocks.push({
+            id: `skill-${s.id}`,
+            type: 'skill-item',
+            column: 'sidebar',
+            skill: s,
+            height: linesCount * 15 + 7
+          });
+        });
+      }
+
+      if (languages.length > 0) {
+        sidebarBlocks.push({
+          id: 'h-lang',
+          type: 'heading',
+          title: 'Languages',
+          column: 'sidebar',
+          keepWithNext: true
+        });
+        languages.forEach((l) => {
+          sidebarBlocks.push({
+            id: `lang-${l.id}`,
+            type: 'lang-item',
+            column: 'sidebar',
+            language: l,
+            height: 36
           });
         });
       }
@@ -723,8 +786,8 @@ export function convertResumeToBlocks(resume = {}, templateType = 'dublin') {
     });
   }
 
-  // Education (if single-column)
-  if (!isTwoColumn && education.length > 0) {
+  // Education (if single-column or Oslo template where Education lives in main column)
+  if ((!isTwoColumn || templateType === 'oslo') && education.length > 0) {
     mainBlocks.push({
       id: 'h-edu',
       type: 'heading',
@@ -814,6 +877,7 @@ export function convertResumeToBlocks(resume = {}, templateType = 'dublin') {
       id: 'cert-grid',
       type: 'grid',
       column: 'main',
+      compactList: templateType === 'oslo',
       items: certifications
     });
   }

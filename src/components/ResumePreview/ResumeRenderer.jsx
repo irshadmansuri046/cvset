@@ -6,6 +6,7 @@ import { SydneyTemplate } from './SydneyTemplate';
 import { HarvardTemplate } from './HarvardTemplate';
 import { BerlinTemplate } from './BerlinTemplate';
 import { GraphiteTemplate } from './GraphiteTemplate';
+import { OsloTemplate } from './OsloTemplate';
 import { LayoutDiagnosticsPanel } from './LayoutDiagnosticsPanel';
 import { exportResumeToPdf, printResume } from '../../utils/pdfExport';
 import { adjustPageBreakPadding, A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_BREAK_PADDING } from '../../utils/pageBreaks';
@@ -25,7 +26,8 @@ export function ResumeRenderer({ resume = {}, interactive = true }) {
     sydney: SydneyTemplate,
     harvard: HarvardTemplate,
     berlin: BerlinTemplate,
-    graphite: GraphiteTemplate
+    graphite: GraphiteTemplate,
+    oslo: OsloTemplate
   };
 
   const TemplateComponent = templateMap[resume?.template] || DublinTemplate;

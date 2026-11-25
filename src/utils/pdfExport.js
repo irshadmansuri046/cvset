@@ -1,5 +1,78 @@
 import { adjustPageBreakPadding, DEFAULT_PAGE_BREAK_PADDING } from './pageBreaks';
 
+/**
+ * Converts CSS oklch(...) color functions to rgb()/rgba() so html2canvas
+ * can parse Tailwind CSS v4 stylesheets without throwing unsupported color errors.
+ */
+export function convertOklchColors(cssText = '') {
+  if (!cssText || typeof cssText !== 'string' || !cssText.includes('oklch(')) {
+    return cssText;
+  }
+  return cssText.replace(/oklch\(\s*([^)]+)\s*\)/gi, (full, inner) => {
+    try {
+      const [colorPart, alphaPart] = inner.split('/').map((s) => s.trim());
+      const parts = colorPart.split(/\s+/);
+      if (parts.length < 3) return full;
+
+      let L = parseFloat(parts[0]);
+      if (parts[0].endsWith('%')) L /= 100;
+      const C = parseFloat(parts[1]);
+      let H = parseFloat(parts[2]);
+      if (parts[2].endsWith('rad')) H = (H * 180) / Math.PI;
+      else if (parts[2].endsWith('turn')) H *= 360;
+
+      if (Number.isNaN(L) || Number.isNaN(C) || Number.isNaN(H)) return full;
+
+      const rad = (H * Math.PI) / 180;
+      const a = C * Math.cos(rad);
+      const b = C * Math.sin(rad);
+
+      const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+      const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+      const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+
+      const l = l_ * l_ * l_;
+      const m = m_ * m_ * m_;
+      const s = s_ * s_ * s_;
+
+      const toSrgb = (c) => {
+        const clamped = Math.min(1, Math.max(0, c));
+        const srgb = clamped <= 0.0031308
+          ? 12.92 * clamped
+          : 1.055 * Math.pow(clamped, 1 / 2.4) - 0.055;
+        return Math.round(Math.min(1, Math.max(0, srgb)) * 255);
+      };
+
+      const r = toSrgb(+4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s);
+      const g = toSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s);
+      const bl = toSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s);
+
+      if (alphaPart !== undefined) {
+        let alpha = parseFloat(alphaPart);
+        if (alphaPart.endsWith('%')) alpha /= 100;
+        if (!Number.isNaN(alpha)) {
+          return `rgba(${r}, ${g}, ${bl}, ${alpha})`;
+        }
+      }
+      return `rgb(${r}, ${g}, ${bl})`;
+    } catch {
+      return full;
+    }
+  });
+}
+
+function sanitizeClonedColors(clonedDoc) {
+  clonedDoc.querySelectorAll('style').forEach((styleEl) => {
+    if (styleEl.textContent && styleEl.textContent.includes('oklch(')) {
+      styleEl.textContent = convertOklchColors(styleEl.textContent);
+    }
+  });
+  clonedDoc.querySelectorAll('[style*="oklch("]').forEach((el) => {
+    const s = el.getAttribute('style');
+    if (s) el.setAttribute('style', convertOklchColors(s));
+  });
+}
+
 export async function exportResumeToPdf(elementId = 'resume-preview-document', fileName = 'resume.pdf') {
   // Try live preview document first, fallback to elementId or export target
   let element = document.getElementById('resume-preview-document') ||
@@ -103,6 +176,39 @@ export async function exportResumeToPdf(elementId = 'resume-preview-document', f
             imageTimeout: 10000,
             onclone: (clonedDoc) => {
               clonedDoc.querySelectorAll('.no-print').forEach((el) => el.remove());
+              sanitizeClonedColors(clonedDoc);
+
+              // Reset body & ancestor layout constraints so 794px pages are never clipped or shifted by narrow preview panes
+              clonedDoc.documentElement.style.margin = '0';
+              clonedDoc.documentElement.style.padding = '0';
+              clonedDoc.body.style.margin = '0';
+              clonedDoc.body.style.padding = '0';
+              clonedDoc.body.style.width = '1200px';
+              clonedDoc.body.style.overflow = 'visible';
+
+              const clonedWrapper = clonedDoc.querySelector('.resume-zoom-wrapper');
+              if (clonedWrapper) {
+                clonedWrapper.style.transform = 'none';
+                clonedWrapper.style.position = 'static';
+                clonedWrapper.style.width = '794px';
+                clonedWrapper.style.margin = '0';
+                if (clonedWrapper.parentElement) {
+                  clonedWrapper.parentElement.style.width = '794px';
+                  clonedWrapper.parentElement.style.height = 'auto';
+                  clonedWrapper.parentElement.style.display = 'block';
+                  clonedWrapper.parentElement.style.margin = '0';
+                  if (clonedWrapper.parentElement.parentElement) {
+                    const sc = clonedWrapper.parentElement.parentElement;
+                    sc.style.overflow = 'visible';
+                    sc.style.display = 'block';
+                    sc.style.padding = '0';
+                    sc.style.width = '1200px';
+                    sc.scrollLeft = 0;
+                    sc.scrollTop = 0;
+                  }
+                }
+              }
+
               const clonedPages = clonedDoc.querySelectorAll('.resume-page');
               clonedPages.forEach((p) => {
                 p.style.boxSizing = 'border-box';
@@ -111,6 +217,8 @@ export async function exportResumeToPdf(elementId = 'resume-preview-document', f
                 p.style.minHeight = '1123px';
                 p.style.maxHeight = '1123px';
                 p.style.overflow = 'hidden';
+                p.style.boxShadow = 'none';
+                p.style.margin = '0';
               });
             }
           });
@@ -210,6 +318,7 @@ export async function exportResumeToPdf(elementId = 'resume-preview-document', f
 
           // Strip out on-screen page break marker overlays and UI buttons from export
           clonedDoc.querySelectorAll('.no-print').forEach((el) => el.remove());
+          sanitizeClonedColors(clonedDoc);
 
           if (clonedResume) {
             // Isolate cloned resume directly inside body at (0, 0) to prevent any layout offset

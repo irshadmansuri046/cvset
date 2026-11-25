@@ -109,6 +109,20 @@
   }
 
   /* Natural in-flow printable document with proper A4 width */
+  .resume-zoom-outer,
+  .resume-zoom-wrapper {
+    position: static !important;
+    transform: none !important;
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
   #resume-preview-document {
     display: block !important;
     position: relative !important;

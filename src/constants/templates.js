@@ -46,6 +46,14 @@ export const TEMPLATES = [
     description: "A charcoal name band over the main column beside a full-height warm-grey sidebar, with wide-tracked uppercase section titles over hairlines.",
     previewColor: "#23272e",
     tags: ["Charcoal Band", "Warm Grey Sidebar", "Modern"]
+  },
+  {
+    id: "oslo",
+    name: "Oslo",
+    badge: "Classic",
+    description: "Boxed minimalist header spanning a neutral grey sidebar and crisp white main column, with short accent bars and dot-rated languages.",
+    previewColor: "#1a1a1a",
+    tags: ["Boxed Header", "2-Column", "Minimalist"]
   }
 ];
 
@@ -63,6 +71,7 @@ export const COLOR_THEMES = [
 
 export const FONT_OPTIONS = [
   { id: "Inter", name: "Inter (Modern Sans)", family: "'Inter', sans-serif" },
+  { id: "Montserrat", name: "Montserrat (Clean Geometric)", family: "'Montserrat', sans-serif" },
   { id: "Outfit", name: "Outfit (Geometric)", family: "'Outfit', sans-serif" },
   { id: "Roboto", name: "Roboto (Clean)", family: "'Roboto', sans-serif" },
   { id: "Merriweather", name: "Merriweather (Classic Serif)", family: "'Merriweather', serif" }

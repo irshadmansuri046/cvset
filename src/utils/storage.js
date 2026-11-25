@@ -48,6 +48,7 @@ export function createNewResume(title = "Untitled Resume", template = "dublin") 
     id: newId,
     title,
     template,
+    ...(template === 'oslo' ? { themeColor: '#1a1a1a', fontFamily: 'Montserrat' } : {}),
     updatedAt: new Date().toISOString()
   };
   saveResume(newResume);

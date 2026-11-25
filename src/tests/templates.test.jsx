@@ -7,6 +7,7 @@ import { SydneyTemplate } from '../components/ResumePreview/SydneyTemplate';
 import { HarvardTemplate } from '../components/ResumePreview/HarvardTemplate';
 import { BerlinTemplate } from '../components/ResumePreview/BerlinTemplate';
 import { GraphiteTemplate } from '../components/ResumePreview/GraphiteTemplate';
+import { OsloTemplate } from '../components/ResumePreview/OsloTemplate';
 import { SkillBar } from '../components/ResumePreview/SkillBar';
 import { DEFAULT_RESUME } from '../constants/sampleData';
 
@@ -17,7 +18,8 @@ describe('Resume Templates Suite (cvset)', () => {
     { name: 'Sydney (Bold Hero Banner)', Component: SydneyTemplate },
     { name: 'Harvard (Academic Serif)', Component: HarvardTemplate },
     { name: 'Berlin (Technical Monospace)', Component: BerlinTemplate },
-    { name: 'Graphite (Charcoal Band & Warm Grey Sidebar)', Component: GraphiteTemplate }
+    { name: 'Graphite (Charcoal Band & Warm Grey Sidebar)', Component: GraphiteTemplate },
+    { name: 'Oslo (Boxed Header & Minimalist Sidebar)', Component: OsloTemplate }
   ];
 
   templates.forEach(({ name, Component }) => {
@@ -198,6 +200,44 @@ describe('Resume Templates Suite (cvset)', () => {
       const html = renderToString(<GraphiteTemplate resume={executiveResume} />);
       expect(html).toContain('CERTIFICATIONS');
       expect(html).toContain('Aha! Product Management Certificate');
+    });
+  });
+
+  describe('OsloTemplate Specific Features', () => {
+    it('renders boxed header, #f4f4f4 sidebar, main Education/Projects, and dot-rated languages', () => {
+      const osloResume = {
+        ...DEFAULT_RESUME,
+        template: 'oslo',
+        personalDetails: {
+          ...DEFAULT_RESUME.personalDetails,
+          firstName: 'Irshad',
+          lastName: 'Mansuri',
+          jobTitle: 'Tech Lead iOS / Senior Manager App Development',
+          address: '1306, Marble Arch CHS, Sector 14',
+          city: 'Navi Mumbai',
+          country: 'India',
+          phone: '+91 8000028800',
+          email: 'irshadmansuri046@gmail.com',
+          linkedin: 'https://linkedin.com/in/irshad',
+          github: 'https://github.com/irshad'
+        },
+        languages: [
+          { id: 'l1', name: 'English', level: 'Intermediate' },
+          { id: 'l2', name: 'Hindi', level: 'Native' }
+        ]
+      };
+
+      const html = renderToString(<OsloTemplate resume={osloResume} />);
+      expect(html).toContain('Montserrat');
+      expect(html).toContain('#f4f4f4');
+      expect(html).toContain('Details');
+      expect(html).toContain('Links');
+      expect(html).toContain('Skills');
+      expect(html).toContain('Languages');
+      expect(html).toContain('Profile');
+      expect(html).toContain('Employment History');
+      expect(html).toContain('Education');
+      expect(html).toContain('Projects');
     });
   });
 });

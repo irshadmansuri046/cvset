@@ -6,7 +6,7 @@ import React from 'react';
  * hanging-indented bullet point lists when lines start with bullet markers (•, -, *)
  * or numbered markers (1., 2., etc.).
  */
-export function FormattedText({ text = '', className = '', bulletColor }) {
+export function FormattedText({ text = '', className = '', bulletColor, bulletStyle = 'char' }) {
   if (!text || typeof text !== 'string') {
     return null;
   }
@@ -25,14 +25,27 @@ export function FormattedText({ text = '', className = '', bulletColor }) {
         elements.push(
           <ul key={`list-${elements.length}`} className="space-y-1 my-1 list-none pl-0">
             {currentList.items.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-1.5 break-inside-avoid">
-                <span 
-                  className="select-none font-bold shrink-0 leading-tight text-[10px] mt-[3px] text-slate-500"
-                  style={bulletColor ? { color: bulletColor } : undefined}
-                >
-                  •
-                </span>
-                <span className="flex-1 leading-snug">{item}</span>
+              <li key={idx} className="flex items-start gap-2 break-inside-avoid">
+                {bulletStyle === 'dot' ? (
+                  <span
+                    aria-hidden="true"
+                    className="select-none shrink-0 rounded-full"
+                    style={{
+                      width: '3px',
+                      height: '3px',
+                      marginTop: '5.5px',
+                      backgroundColor: bulletColor || '#4b5563'
+                    }}
+                  />
+                ) : (
+                  <span 
+                    className="select-none font-bold shrink-0 leading-snug text-[10px] text-slate-500"
+                    style={bulletColor ? { color: bulletColor } : undefined}
+                  >
+                    •
+                  </span>
+                )}
+                <span className="flex-1 min-w-0 leading-snug break-words">{item}</span>
               </li>
             ))}
           </ul>
