@@ -488,7 +488,7 @@ export function DublinTemplate({ resume = {}, debug = false, pagePadding = 45 })
 
               {/* Right Main Column (68%) */}
               <div 
-                className="w-[68%] flex flex-col gap-4 flex-1 bg-transparent box-border"
+                className="w-[68%] flex flex-col gap-4 flex-1 min-w-0 break-words bg-transparent box-border"
                 style={{
                   paddingTop: `${page.pagePadding}px`,
                   paddingBottom: `${page.pagePadding}px`,

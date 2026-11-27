@@ -66,7 +66,7 @@ export function StockholmTemplate({ resume = {}, debug = false, pagePadding = 40
               if (block.type === 'header') {
                 return (
                   <header key={block.id} className="flex items-center justify-between border-b pb-5" style={{ borderColor: `${themeColor}30` }}>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
                         {personalDetails.firstName || 'First'} {personalDetails.lastName || 'Last'}
                       </h1>

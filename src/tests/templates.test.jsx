@@ -70,6 +70,37 @@ describe('Resume Templates Suite (cvset)', () => {
         const html = renderToString(<Component resume={styledResume} />);
         expect(html).toBeDefined();
       });
+
+      it('renders discrete A4 page containers (794px x 1123px) with overflow-hidden and handles multi-page content', () => {
+        const longResume = {
+          ...DEFAULT_RESUME,
+          employmentHistory: Array.from({ length: 6 }, (_, i) => ({
+            id: `job-${i}`,
+            jobTitle: `Principal Engineer ${i + 1}`,
+            employer: `Enterprise Systems ${i + 1}`,
+            city: 'Navi Mumbai',
+            startDate: 'Jan 2020',
+            endDate: 'Present',
+            description: '• Architected scalable distributed systems and mentored cross-functional engineering teams.\n• Reduced latency by 40% via caching and query tuning.'
+          })),
+          projects: Array.from({ length: 4 }, (_, i) => ({
+            id: `proj-${i}`,
+            name: `Platform Initiative ${i + 1}`,
+            technologies: 'React, Node.js, TypeScript',
+            link: `https://example.com/very-long-project-url-path-${i + 1}/overview`,
+            description: '• Delivered full-stack product capabilities ahead of schedule.'
+          }))
+        };
+
+        const html = renderToString(<Component resume={longResume} />);
+        expect(html).toContain('resume-page');
+        expect(html).toContain('width:794px');
+        expect(html).toContain('height:1123px');
+        expect(html).toContain('overflow-hidden');
+        expect(html).toContain('Principal Engineer 1');
+        expect(html).toContain('Principal Engineer 6');
+        expect(html).toContain('Platform Initiative 4');
+      });
     });
   });
 

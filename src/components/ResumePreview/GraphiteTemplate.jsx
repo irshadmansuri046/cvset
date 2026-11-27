@@ -441,7 +441,7 @@ export function GraphiteTemplate({ resume = {}, debug = false, pagePadding = 45 
               </aside>
 
               {/* Main Column */}
-              <main className="w-[69%] flex flex-col flex-1 bg-white">
+              <main className="w-[69%] flex flex-col flex-1 min-w-0 break-words bg-white">
                 {renderMainBlocks(page)}
               </main>
             </div>

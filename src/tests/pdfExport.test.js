@@ -4,12 +4,14 @@ import { exportResumeToPdf, printResume } from '../utils/pdfExport';
 // Mock dependencies
 const mockAddImage = vi.fn();
 const mockAddPage = vi.fn();
+const mockLink = vi.fn();
 const mockSave = vi.fn();
 
 class MockJsPDF {
   constructor() {
     this.addImage = mockAddImage;
     this.addPage = mockAddPage;
+    this.link = mockLink;
     this.save = mockSave;
   }
 }
@@ -274,6 +276,43 @@ describe('PDF Export & Print Utility (cvset)', () => {
 
       printSpy.mockRestore();
       errorSpy.mockRestore();
+    });
+
+    it('converts Tailwind v4 oklch() colors to rgb/rgba cleanly for html2canvas', async () => {
+      const { convertOklchColors } = await import('../utils/pdfExport');
+      const css = ':root { --c1: oklch(97.1% 0.013 17.38); --c2: oklch(0.5 0.2 240 / 50%); }';
+      const converted = convertOklchColors(css);
+      expect(converted).not.toContain('oklch(');
+      expect(converted).toContain('rgb(');
+      expect(converted).toContain('rgba(');
+    });
+
+    it('adds interactive PDF link annotations for anchor elements on discrete resume pages', async () => {
+      const container = document.createElement('div');
+      container.id = 'resume-preview-document';
+      const pageEl = document.createElement('div');
+      pageEl.className = 'resume-page';
+      pageEl.getBoundingClientRect = () => ({ left: 0, top: 0, width: 794, height: 1123 });
+
+      const linkedinLink = document.createElement('a');
+      linkedinLink.href = 'https://linkedin.com/in/irshad';
+      linkedinLink.textContent = 'LinkedIn';
+      linkedinLink.getBoundingClientRect = () => ({ left: 44, top: 320, width: 60, height: 14 });
+      pageEl.appendChild(linkedinLink);
+
+      container.appendChild(pageEl);
+      document.body.appendChild(container);
+
+      const success = await exportResumeToPdf('resume-preview-document', 'links_test.pdf');
+      expect(success).toBe(true);
+      expect(mockLink).toHaveBeenCalledTimes(1);
+      expect(mockLink).toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.any(Number),
+        expect.any(Number),
+        expect.any(Number),
+        { url: 'https://linkedin.com/in/irshad' }
+      );
     });
   });
 });

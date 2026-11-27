@@ -276,7 +276,7 @@ export function SydneyTemplate({ resume = {}, debug = false, pagePadding = 36 })
             {page.layout === 'two-column' ? (
               <div className="flex flex-row gap-6 w-full flex-1">
                 {/* Main column */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 min-w-0 break-words flex flex-col">
                   {page.main.map(renderMainBlock)}
                 </div>
 

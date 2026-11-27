@@ -73,6 +73,37 @@ function sanitizeClonedColors(clonedDoc) {
   });
 }
 
+/**
+ * Overlays native interactive PDF link annotations onto jsPDF pages
+ * matching the exact rendered bounding boxes of <a href="..."> elements.
+ */
+function addPageLinkAnnotations(pdf, pageEl, pageWidthMm = 210, pageHeightMm = 297) {
+  if (!pdf || typeof pdf.link !== 'function' || !pageEl || typeof pageEl.getBoundingClientRect !== 'function') {
+    return;
+  }
+  const pageRect = pageEl.getBoundingClientRect();
+  const baseWidth = pageRect.width || 794;
+  const baseHeight = pageRect.height || 1123;
+
+  const anchors = pageEl.querySelectorAll('a[href]');
+  anchors.forEach((anchor) => {
+    const href = anchor.getAttribute('href');
+    if (!href || href === '#' || href.startsWith('javascript:')) return;
+
+    const rect = anchor.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) return;
+
+    const xMm = ((rect.left - pageRect.left) / baseWidth) * pageWidthMm;
+    const yMm = ((rect.top - pageRect.top) / baseHeight) * pageHeightMm;
+    const wMm = (rect.width / baseWidth) * pageWidthMm;
+    const hMm = (rect.height / baseHeight) * pageHeightMm;
+
+    if (xMm >= 0 && yMm >= 0 && xMm < pageWidthMm && yMm < pageHeightMm) {
+      pdf.link(xMm, yMm, wMm, hMm, { url: href });
+    }
+  });
+}
+
 export async function exportResumeToPdf(elementId = 'resume-preview-document', fileName = 'resume.pdf') {
   // Try live preview document first, fallback to elementId or export target
   let element = document.getElementById('resume-preview-document') ||
@@ -225,6 +256,7 @@ export async function exportResumeToPdf(elementId = 'resume-preview-document', f
 
           const imgData = pageCanvas.toDataURL ? pageCanvas.toDataURL('image/png') : '';
           pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+          addPageLinkAnnotations(pdf, pageEl, pageWidth, pageHeight);
         }
 
         pdf.save(fileName);

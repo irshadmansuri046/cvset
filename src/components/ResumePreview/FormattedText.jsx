@@ -61,7 +61,7 @@ export function FormattedText({ text = '', className = '', bulletColor, bulletSt
                 >
                   {item.num}.
                 </span>
-                <span className="flex-1 leading-snug">{item.text}</span>
+                <span className="flex-1 min-w-0 leading-snug break-words">{item.text}</span>
               </li>
             ))}
           </ol>
